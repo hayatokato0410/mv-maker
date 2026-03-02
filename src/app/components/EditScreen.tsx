@@ -40,9 +40,6 @@ export function EditScreen() {
   const { lang, setLang, t } = useI18n();
   const { theme } = useTheme();
 
-  // Mobile settings panel
-  const [showPanel, setShowPanel] = useState(false);
-
   // Add clips from EditScreen
   const handleAddClips = useCallback((files: FileList) => {
     const arr = Array.from(files).filter(f => f.type.startsWith('image/'));
@@ -282,6 +279,7 @@ export function EditScreen() {
   }, [clips, startMusic]);
 
   const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const wasPlaying = isPlayingRef.current;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
     const pct = x / rect.width;
@@ -304,10 +302,11 @@ export function EditScreen() {
     }
     fadeOutTriggeredRef.current = ms >= durationSecRef.current * 1000 - 2000;
     setShowReplay(false);
-    isPlayingRef.current = false;
-    setIsPlaying(false);
-    musicEngine.pause();
-  }, []);
+    isPlayingRef.current = wasPlaying;
+    setIsPlaying(wasPlaying);
+    if (wasPlaying && selectedTrackIdRef.current) startMusic();
+    else if (!wasPlaying) musicEngine.pause();
+  }, [startMusic]);
 
   useEffect(() => { return () => { musicEngine.stop(); musicEngine.stopFile(); }; }, []);
   useEffect(() => {
@@ -373,24 +372,6 @@ export function EditScreen() {
 
           <ThemeToggle />
 
-          {/* Settings toggle — mobile only */}
-          <button
-            onClick={() => setShowPanel(v => !v)}
-            className="md:hidden flex items-center justify-center"
-            style={{
-              width: 28, height: 28, borderRadius: 2,
-              border: `1px solid ${showPanel ? theme.accent : theme.border3}`,
-              background: showPanel ? 'rgba(200,184,154,0.1)' : theme.surface,
-              cursor: 'pointer', color: showPanel ? theme.accent : theme.text4,
-              flexShrink: 0,
-            }}
-          >
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-              <circle cx="6.5" cy="6.5" r="2" stroke="currentColor" strokeWidth="1.1"/>
-              <path d="M6.5 1v1.5M6.5 10v1.5M1 6.5h1.5M10 6.5h1.5M2.6 2.6l1.1 1.1M9.3 9.3l1.1 1.1M9.3 2.6l-1.1 1.1M2.6 9.3l1.1 1.1" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
-            </svg>
-          </button>
-
           {/* Share button */}
           <button
             onClick={() => setScreen('share')}
@@ -410,15 +391,15 @@ export function EditScreen() {
       </header>
 
       {/* ── Main content ─────────────────────────────────────────── */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
 
         {/* Left / Main: preview + controls */}
         <div
-          className="flex-1 flex flex-col overflow-hidden min-w-0"
+          className="flex flex-col overflow-hidden min-w-0 md:flex-1"
           style={{ borderRight: `1px solid ${theme.border}` }}
         >
           {/* Preview */}
-          <div className="flex-1 flex items-center justify-center p-6 sm:p-10 min-h-0 overflow-hidden">
+          <div className="flex-none h-[38vh] md:flex-1 md:h-auto flex items-center justify-center p-4 md:p-10 min-h-0 overflow-hidden">
             {(() => {
               // 利用可能な高さ(px)からアスペクト比を保ちながら最大幅を決める
               // 縦長 (9:16=0.5625, 4:5=0.8) のときは高さ制限で幅が決まる
@@ -644,6 +625,14 @@ export function EditScreen() {
               <ThumbnailStrip clips={clips} activeIndex={activeIndex} onReorder={reorderClips} onAddClips={handleAddClips} onSetClipFocal={setClipFocal} />
             </div>
           </div>
+
+          {/* ── Settings panel: mobile (always visible below controls) ── */}
+          <div
+            className="md:hidden flex-1 overflow-y-auto border-t"
+            style={{ background: theme.bgAlt, borderColor: theme.border }}
+          >
+            <RightPanel />
+          </div>
         </div>
 
         {/* ── Right Panel: sidebar on desktop ─────────────────── */}
@@ -654,45 +643,6 @@ export function EditScreen() {
           <RightPanel />
         </div>
 
-        {/* ── Right Panel: bottom sheet on mobile ─────────────── */}
-        {showPanel && (
-          <div
-            className="md:hidden fixed inset-0 z-50 flex flex-col justify-end"
-            style={{ background: 'rgba(0,0,0,0.5)' }}
-            onClick={() => setShowPanel(false)}
-          >
-            <div
-              className="flex flex-col overflow-hidden"
-              style={{
-                background: theme.bgAlt,
-                borderRadius: '12px 12px 0 0',
-                maxHeight: '80vh',
-                borderTop: `1px solid ${theme.border}`,
-              }}
-              onClick={e => e.stopPropagation()}
-            >
-              {/* Bottom sheet handle + close */}
-              <div
-                className="flex items-center justify-between flex-shrink-0 px-5 py-3"
-                style={{ borderBottom: `1px solid ${theme.border}` }}
-              >
-                <div style={{ width: 32, height: 3, borderRadius: 2, background: theme.border3, margin: '0 auto' }} />
-                <button
-                  onClick={() => setShowPanel(false)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: theme.text4, position: 'absolute', right: 16 }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                  </svg>
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto">
-                <RightPanel />
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
