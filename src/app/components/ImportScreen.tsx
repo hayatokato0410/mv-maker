@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { MusicPicker } from './MusicPicker';
 import { musicEngine } from '../audio/MusicEngine';
 import { ThemeToggle } from './ui/ThemeToggle';
+import { ProBadge } from './ui/ProBadge';
 
 const MOOD_ACCENTS: Record<Mood, string> = {
   Chill:     '#8ca8b8',
@@ -14,6 +15,7 @@ const MOOD_ACCENTS: Record<Mood, string> = {
 };
 
 const MOODS: Mood[] = ['Chill', 'Hype', 'Cute', 'Cinematic'];
+
 
 export function ImportScreen() {
   const { clips, setClips, mood, applyMoodPreset, setScreen, selectedTrackId, durationSec } = useApp();
@@ -60,6 +62,19 @@ export function ImportScreen() {
     Cute:      t('cuteDesc'),
     Cinematic: t('cinematicDesc'),
   };
+
+  const proMoods = [
+    {
+      name: lang === 'ja' ? 'フィルム' : 'Film',
+      desc: lang === 'ja' ? 'モノクロ · ハードグレイン' : 'B&W · heavy grain',
+      accent: '#707070',
+    },
+    {
+      name: lang === 'ja' ? 'ドリーミー' : 'Dreamy',
+      desc: lang === 'ja' ? 'ソフトブラー · くすみカラー' : 'Soft blur · muted palette',
+      accent: '#b8a8c8',
+    },
+  ];
 
   const steps = [
     lang === 'ja' ? '01 インポート' : '01 Import',
@@ -243,6 +258,39 @@ export function ImportScreen() {
                 </button>
               );
             })}
+
+            {/* Pro mood cards — visible but locked */}
+            {proMoods.map(pm => (
+              <div
+                key={pm.name}
+                className="text-left relative"
+                style={{
+                  background: theme.surface,
+                  border: `1px solid ${theme.border3}`,
+                  borderRadius: 2,
+                  padding: '14px 12px',
+                  opacity: 0.6,
+                  cursor: 'default',
+                  userSelect: 'none',
+                }}
+              >
+                {/* Pro badge — top right */}
+                <div style={{ position: 'absolute', top: 8, right: 8 }}>
+                  <ProBadge tooltip={lang === 'ja' ? 'Proにアップグレードして解除' : 'Upgrade to Pro to unlock'} />
+                </div>
+
+                <div className="mb-2" style={{ width: 24, height: 2, background: pm.accent, borderRadius: 1 }} />
+                <div className="mb-1" style={{ fontSize: 13, color: theme.text5, letterSpacing: '0.05em' }}>
+                  {pm.name}
+                </div>
+                <div style={{ fontSize: 10, color: theme.text2, letterSpacing: '0.08em', marginBottom: 4 }}>
+                  {pm.desc}
+                </div>
+                <div style={{ fontSize: 10, color: theme.textDim, letterSpacing: '0.06em' }}>
+                  {durationSec}s · 72 BPM
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

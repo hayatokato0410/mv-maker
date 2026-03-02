@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { ALL_TRACKS } from '../audio/tracks';
 import { musicEngine } from '../audio/MusicEngine';
+import { ProBadge } from './ui/ProBadge';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -552,6 +553,56 @@ export function ShareScreen() {
             {exportFormat === 'mp4'
               ? (lang === 'ja' ? 'H.264 · 広範な互換性' : 'H.264 · Broad compatibility')
               : (lang === 'ja' ? 'VP9 · 高品質（Chrome推奨）' : 'VP9 · High quality (Chrome recommended)')
+            }
+          </div>
+        </div>
+
+        {/* ── Resolution (Pro) ──────────────────────────────────────────────── */}
+        <div className="mb-8">
+          <div
+            className="flex items-center gap-2"
+            style={{ fontSize: 10, color: theme.text3, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}
+          >
+            {lang === 'ja' ? '解像度' : 'Resolution'}
+          </div>
+          <div className="flex gap-2">
+            {/* Free: 720p */}
+            <div
+              style={{
+                flex: 1, padding: '9px 0', textAlign: 'center',
+                borderRadius: 2, border: 'none',
+                fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+                background: theme.accent,
+                color: theme.accentFg,
+              }}
+            >
+              720p
+            </div>
+
+            {/* Pro: 1080p — locked */}
+            <div
+              style={{
+                flex: 1, padding: '9px 0', textAlign: 'center',
+                borderRadius: 2, border: `1px solid ${theme.border3}`,
+                fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+                background: theme.surface2,
+                color: theme.text3,
+                cursor: 'default',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                userSelect: 'none',
+              }}
+            >
+              1080p
+              <ProBadge tooltip={lang === 'ja' ? 'Proにアップグレードで解除' : 'Upgrade to Pro to unlock'} />
+            </div>
+          </div>
+          <div style={{ fontSize: 9, color: theme.textDim, letterSpacing: '0.06em', marginTop: 6 }}>
+            {lang === 'ja'
+              ? '無料プランは720p · Proで1080pフルHDに対応'
+              : 'Free plan exports at 720p · Pro unlocks 1080p Full HD'
             }
           </div>
         </div>
